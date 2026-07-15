@@ -1,0 +1,22 @@
+.agents/
+.playwright-cli/
+output/
+dist/
+release/
+node_modules/
+scripts/__pycache__/
+*.py[cod]
+*.zip
+*.7z
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# Full dictionary sources are intentionally not committed. The generated exam subset is tracked.
+data/source/ECDICT/
+ecdict.csv
+*.db
+*.sqlite
+*.sqlite3

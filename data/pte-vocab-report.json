@@ -1,0 +1,20 @@
+{
+  "input_unique": 570,
+  "resolved": 570,
+  "unresolved": [],
+  "pte_only": 33,
+  "overlaps": {
+    "GRE+PTE": 8,
+    "IELTS+GRE+PTE": 15,
+    "IELTS+PTE": 55,
+    "IELTS+TOEFL+GRE+PTE": 204,
+    "IELTS+TOEFL+PTE": 162,
+    "PTE": 33,
+    "TOEFL+GRE+PTE": 34,
+    "TOEFL+PTE": 59
+  },
+  "headword_source": "Jianyuanxi/AWL assets/words.json",
+  "headword_source_commit": "168c3614f053a67ef0ec5cd115db34c5dc54a345",
+  "headword_source_repository_license": "MIT",
+  "dictionary_source": "skywind3000/ECDICT"
+}

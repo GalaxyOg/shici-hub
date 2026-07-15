@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Validate version and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          META_VERSION="$(node -e "require('./app-meta.js'); process.stdout.write(globalThis.APP_META.version)")"
+          test "$PACKAGE_VERSION" = "$META_VERSION"
+          test "$GITHUB_REF_NAME" = "v$PACKAGE_VERSION"
+          node --check app.js
+          node --check tests/smoke.js
+          node tests/smoke.js
+
+      - name: Build downloadable package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          PACKAGE_DIR="dist/shici-memory-v${VERSION}"
+          mkdir -p "$PACKAGE_DIR/data/source/PTE"
+          cp index.html app-meta.js app.js vocab.js styles.css enhancements.css README.md CHANGELOG.md THIRD_PARTY_NOTICES.md "$PACKAGE_DIR/"
+          cp data/exam-vocab.js data/exam-vocab-stats.json data/pte-vocab-report.json data/ECDICT_LICENSE data/ECDICT_README.md "$PACKAGE_DIR/data/"
+          cp data/source/PTE/LICENSE data/source/PTE/README.md "$PACKAGE_DIR/data/source/PTE/"
+          (
+            cd "$PACKAGE_DIR"
+            zip -q -r "../shici-memory-v${VERSION}.zip" .
+          )
+          (
+            cd dist
+            sha256sum "shici-memory-v${VERSION}.zip" > "shici-memory-v${VERSION}.sha256"
+          )
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/shici-memory-v${VERSION}.zip" \
+            "dist/shici-memory-v${VERSION}.sha256" \
+            --verify-tag \
+            --generate-notes \
+            --title "拾词 $GITHUB_REF_NAME"

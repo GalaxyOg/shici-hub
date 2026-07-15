@@ -1,0 +1,21 @@
+{
+  "unique": 12880,
+  "counts": {
+    "IELTS": 5040,
+    "TOEFL": 6974,
+    "GRE": 7504,
+    "PTE": 570
+  },
+  "with_phonetic": 12463,
+  "with_english_definition": 12813,
+  "with_chinese_translation": 12880,
+  "with_word_forms": 9644,
+  "source": "skywind3000/ECDICT",
+  "license": "MIT",
+  "deck_sources": {
+    "IELTS": "ECDICT tag: ielts",
+    "TOEFL": "ECDICT tag: toefl",
+    "GRE": "ECDICT tag: gre",
+    "PTE": "Academic Word List 570 headwords (pinned third-party snapshot); definitions from ECDICT"
+  }
+}

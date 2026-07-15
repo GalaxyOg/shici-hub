@@ -1,0 +1,16 @@
+{
+  "name": "shici-memory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "拾词：IELTS、TOEFL、GRE 与 PTE Academic 的 BS 间隔复习网页应用",
+  "author": "落日七号",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luori7hao/shici-memory.git"
+  },
+  "homepage": "https://github.com/luori7hao/shici-memory",
+  "scripts": {
+    "test": "node tests/smoke.js",
+    "check": "node --check app.js && node --check tests/smoke.js"
+  }
+}

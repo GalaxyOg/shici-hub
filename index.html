@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f0e6" />
+  <meta name="author" content="落日七号" />
+  <meta name="application-name" content="拾词" />
+  <title>拾词 · IELTS / TOEFL / GRE / PTE 记忆计划</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="enhancements.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" data-view="today" aria-label="返回今日学习"><span>拾词</span><i></i></button>
+    <nav aria-label="主导航">
+      <button class="nav-link active" data-view="today">今日</button>
+      <button class="nav-link" data-view="library">词库</button>
+      <button class="nav-link" data-view="plan">计划</button>
+      <button class="nav-link" data-view="history">记录</button>
+      <button class="nav-link" data-view="guide">说明</button>
+    </nav>
+    <div class="streak"><span>连续</span><strong id="streakDays">0</strong><span>天</span></div>
+  </header>
+
+  <main>
+    <section id="guideView" class="view subview">
+      <div class="guide-hero reveal">
+        <div>
+          <p class="eyebrow">BS MEMORY METHOD · BUILD & STRENGTHEN</p>
+          <h1>BS 记忆法<br><span>建立 · 强化</span></h1>
+          <p class="guide-lead">初学后在第2、3、7、30天阶段强化。新词与到期复习合并成固定学习单，困难词在当轮结束后循环回顾，清零并打卡才正式进入进度。</p>
+          <div class="guide-actions"><button class="primary" id="startStudyBtn">开始今日学习</button><button class="secondary" data-view="plan">调整学习计划</button></div>
+        </div>
+        <div class="guide-rhythm" aria-label="复习节奏"><span>初学</span><i></i><span>+1天</span><i></i><span>+2天</span><i></i><span>+7天</span><i></i><span>+30天</span></div>
+      </div>
+      <section class="guide-steps">
+        <div><strong>01</strong><h2>设定范围</h2><p>选择 IELTS、TOEFL、GRE、PTE Academic，每日数量和是否跳过中高考基础词。未打卡的今日任务会立即重排。</p></div>
+        <div><strong>02</strong><h2>完成学习单</h2><p>复习优先于新词；同阶段内，逾期更久和曾标记费力的词优先。新词按精修优先、语料词频由高到低出现。</p></div>
+        <div><strong>03</strong><h2>强化后打卡</h2><p>初轮的模糊与费力词会循环回顾；全部点“记得”清零后才能打卡并生成下一次复习。</p></div>
+        <div><strong>04</strong><h2>查看记录</h2><p>在记录页或日历中查看每天的新词、复习词和反馈；词库支持搜索、筛选与分页。</p></div>
+      </section>
+      <section class="guide-data">
+        <div><p class="eyebrow">CURRENT PLAN</p><h2 id="guidePlanTitle">每天 10 个新词</h2><p id="guidePlanMeta"></p></div>
+        <div><p class="eyebrow">TODAY'S ORDER</p><p>① 到期复习按第2/3/7/30天分组；② 同组内优先逾期与历史费力词；③ 最后加入尚未学过的高频新词。每日数量只限制新词，复习不占额度。</p></div>
+        <div><p class="eyebrow">ABOUT THE DATA</p><p>基础双解、音标、词形和词频来自 MIT License 的 ECDICT。PTE Academic 基于 Academic Word List 的 570 个学术词头建立第三方学习范围，释义仍来自 ECDICT；它不是 Pearson 官方词表，也不代表 Pearson 推荐或背书。</p></div>
+      </section>
+      <section class="project-update" id="projectUpdate" data-state="idle" aria-labelledby="projectUpdateTitle">
+        <div class="project-identity">
+          <p class="eyebrow">PROJECT</p>
+          <h2 id="projectUpdateTitle">拾词 <span id="currentVersion">v1.0.0</span></h2>
+          <p>作者 <a id="authorLink" href="https://github.com/luori7hao" target="_blank" rel="noopener noreferrer">落日七号</a> · <a id="repositoryLink" href="https://github.com/luori7hao/shici-memory" target="_blank" rel="noopener noreferrer">GitHub 源码</a></p>
+        </div>
+        <div class="update-panel">
+          <p class="eyebrow">GITHUB RELEASES</p>
+          <p class="update-status" id="updateStatus" role="status" aria-live="polite">点击检查 GitHub 中是否有新的正式版本；不会上传本地学习记录。</p>
+          <div class="update-actions">
+            <button class="text-action check-update" id="checkUpdateBtn" type="button">检查更新</button>
+            <a class="update-link hidden" id="latestReleaseLink" href="https://github.com/luori7hao/shici-memory/releases/latest" target="_blank" rel="noopener noreferrer">查看新版本 →</a>
+            <a class="update-link" id="allReleasesLink" href="https://github.com/luori7hao/shici-memory/releases" target="_blank" rel="noopener noreferrer">全部历史版本</a>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="todayView" class="view active">
+      <div class="today-head reveal">
+        <div>
+          <p class="eyebrow" id="dateLabel"></p>
+          <h1>今天的学习单</h1>
+          <p class="carry-note hidden" id="carryNote"></p>
+        </div>
+        <div class="day-summary">
+          <div><strong id="dueCount">0</strong><span>待复习</span></div>
+          <div><strong id="newCount">0</strong><span>新单词</span></div>
+          <div><strong id="doneCount">0</strong><span>已完成</span></div>
+        </div>
+      </div>
+
+      <section class="overview-strip" aria-label="总学习进度">
+        <div class="overall-progress">
+          <div class="overview-title"><span>词库总进度</span><strong id="overallPercent">0%</strong></div>
+          <div class="overall-track"><span id="overallBar"></span></div>
+          <p><b id="learnedTotal">0</b> / <span id="wordTotal">0</span> 个已完成首轮 · 预计还需 <b id="daysLeft">0</b> 个学习日</p>
+          <button class="inline-link" data-view="history">查看每日单词记录 →</button>
+        </div>
+        <div class="review-forecast">
+          <span>复习提醒</span>
+          <strong id="nextReviewText">完成今天任务后生成</strong>
+          <small id="nextReviewMeta">第 2、3、7、30 天复习</small>
+        </div>
+        <button class="date-control" id="dateControlBtn">调整学习日期 <span>→</span></button>
+      </section>
+      <div id="dateStatusBanner" class="date-status hidden"></div>
+
+      <div class="progress-line"><span id="progressBar"></span></div>
+      <div id="reinforcementBanner" class="reinforcement-banner hidden"></div>
+
+      <section id="studyEmpty" class="empty-state hidden">
+        <span class="empty-mark">✓</span>
+        <h2 id="emptyTitle">今天的词已经见完了</h2>
+        <p id="emptyCopy">完成打卡后，今天的学习才会正式计入总进度。</p>
+        <button class="primary checkin-btn" id="emptyCheckinBtn">完成今日打卡</button>
+        <button class="secondary hidden" id="nextDayBtn">进入下一学习日 →</button>
+      </section>
+
+      <section id="studyWorkspace" class="study-grid">
+        <aside class="queue" id="queuePanel" aria-label="今日学习队列">
+          <div class="queue-title"><span>学习队列</span><small id="queueMeta"></small><button id="queueCollapseBtn" aria-label="折叠学习队列" title="折叠学习队列">‹</button></div>
+          <div id="queueList"></div>
+        </aside>
+
+        <article class="word-sheet" id="wordSheet">
+          <div class="word-topline">
+            <span id="wordSource" class="source-tag"></span>
+            <span id="wordStage"></span>
+          </div>
+          <div class="word-title-row">
+            <div><h2 id="wordTitle"></h2><p id="phonetic"></p></div>
+            <button class="sound" id="speakBtn" aria-label="朗读单词"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 4V5L9 9H5Zm12.5 3a4.5 4.5 0 0 0-2-3.74v7.48a4.5 4.5 0 0 0 2-3.74Z"/><path d="M15.5 3.6v2.1a7 7 0 0 1 0 12.6v2.1a9 9 0 0 0 0-16.8Z"/></svg><span>朗读</span></button>
+          </div>
+          <p class="meaning" id="meaning"></p>
+          <div id="meaningList" class="meaning-list"></div>
+          <div class="definition-block">
+            <p class="section-label">English definition</p>
+            <p id="englishDefinition"></p>
+            <div id="senseList" class="sense-list"></div>
+          </div>
+          <div class="example-block" id="exampleBlock">
+            <p class="section-label">例句</p>
+            <p id="example"></p>
+            <p id="exampleZh" class="translation"></p>
+            <button class="text-action" id="speakSentenceBtn">▶ 朗读例句</button>
+          </div>
+          <div class="relations">
+            <div><p class="section-label" id="synonymLabel">同义联想</p><div id="synonyms" class="word-links"></div></div>
+            <div><p class="section-label">对比 / 词根</p><p id="memoryNote" class="note"></p></div>
+          </div>
+          <div class="relations word-notes">
+            <div><p class="section-label">词形变化</p><p id="wordFamily" class="note"></p></div>
+            <div><p class="section-label">常用搭配</p><p id="collocations" class="note"></p></div>
+          </div>
+          <div id="glossaryBlock" class="glossary"><p class="section-label">例句难词</p><div id="glossary"></div></div>
+          <div class="rating">
+            <p id="ratingPrompt">这次记得怎么样？</p>
+            <div id="ratingActions">
+              <button data-rating="again">模糊<span>加入强化回顾</span></button>
+              <button data-rating="hard">费力<span>加入强化回顾</span></button>
+              <button data-rating="good" class="rating-main">记得<span>进入下一阶段</span></button>
+            </div>
+            <div id="completedBadge" class="completed-badge hidden">✓ 已完成，可继续回看</div>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <section id="libraryView" class="view subview">
+      <div class="page-title"><p class="eyebrow">WORD LIBRARY</p><h1>词库</h1><p id="libraryStats">正在加载词库统计…</p></div>
+      <aside class="source-notice"><strong>关于词库来源</strong><p>基础词条来自 MIT License 的开放双解词典 ECDICT，并按 IELTS、TOEFL、GRE 标签提取；PTE Academic 以 570 个 Academic Word List 词头建立第三方备考学术核心。四类可以重叠，同一个英文原词只保存和计算一次。</p></aside>
+      <div class="library-tools">
+        <div class="filters" id="filters"><button class="active" data-filter="ALL">全部</button><button data-filter="IELTS">IELTS</button><button data-filter="TOEFL">TOEFL</button><button data-filter="GRE">GRE</button><button data-filter="PTE">PTE</button></div>
+        <select id="difficultyFilter" aria-label="基础词筛选"><option value="ALL">全部难度</option><option value="NON_BASIC">隐藏中高考基础词</option><option value="BASIC">仅看中高考基础词</option></select>
+        <label class="search-shell"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="搜索英文、中文或英文释义" autocomplete="off" /><kbd>/</kbd><button id="clearSearchBtn" type="button" class="hidden" aria-label="清除搜索">×</button></label>
+      </div>
+      <p id="searchResultMeta" class="search-result-meta">显示全部词条</p>
+      <div id="libraryList" class="library-list"></div>
+      <div id="libraryFooter" class="library-footer"></div>
+    </section>
+
+    <section id="planView" class="view subview">
+      <div class="page-title"><p class="eyebrow">MEMORY RHYTHM</p><h1>学习计划</h1><p>新词首次学习后，在第 2、3、7、30 天重新出现。</p></div>
+      <div class="plan-layout">
+        <div class="rhythm"><div class="rhythm-line"></div><div><strong>今天</strong><span>初次学习</span></div><div><strong>+1 天</strong><span>快速回想</span></div><div><strong>+2 天</strong><span>加深路径</span></div><div><strong>+7 天</strong><span>长期巩固</span></div><div><strong>+30 天</strong><span>最终确认</span></div></div>
+        <form id="settingsForm" class="settings">
+          <label>每天学习新词<input id="dailyGoal" type="number" min="1" max="50" value="10"><span>个</span></label>
+          <fieldset><legend>我的目标词库</legend><label><input type="checkbox" name="deck" value="IELTS" checked> IELTS 雅思</label><label><input type="checkbox" name="deck" value="TOEFL" checked> TOEFL 托福</label><label><input type="checkbox" name="deck" value="GRE" checked> GRE</label><label><input type="checkbox" name="deck" value="PTE" checked> PTE Academic</label></fieldset>
+          <label class="basic-toggle"><span><input type="checkbox" id="excludeBasic"> 跳过中考 / 高考基础词</span><small>依据 ECDICT 的 zk、gk 标签；未打卡的今日任务会立即重排</small></label>
+          <button class="primary" type="submit">保存计划</button><button class="danger-link" type="button" id="resetBtn">重置全部学习记录</button>
+          <p id="pendingPlanNote" class="pending-plan hidden"></p>
+        </form>
+      </div>
+      <section class="calendar-section">
+        <div><p class="eyebrow">CHECK-IN CALENDAR</p><h2>学习打卡</h2><p>只有完成当日任务并打卡，才计入总进度。未打卡的学习单会保留到下次。</p></div>
+        <div><div class="calendar-head"><button id="prevMonthBtn">←</button><strong id="calendarMonth"></strong><button id="nextMonthBtn">→</button></div><div class="calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="calendarGrid" class="calendar-grid"></div></div>
+      </section>
+    </section>
+
+    <section id="historyView" class="view subview">
+      <div class="page-title"><p class="eyebrow">DAILY ARCHIVE</p><h1>每日记录</h1><p>点击日历或左侧日期查看当天清单；上方困难词会汇总哪一个词在第几遍被标记为“费力”。</p></div>
+      <section class="difficulty-overview">
+        <div><p class="eyebrow">DIFFICULT WORDS</p><h2><span id="hardWordCount">0</span> 个困难词</h2><p>按“费力”次数排序，并标出发生在第几遍记忆。</p></div>
+        <div id="difficultyList" class="difficulty-list"></div>
+      </section>
+      <div class="history-layout">
+        <aside class="history-sidebar">
+          <div class="history-mini-calendar"><div class="calendar-head"><button id="historyPrevMonthBtn">←</button><strong id="historyCalendarMonth"></strong><button id="historyNextMonthBtn">→</button></div><div class="calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="historyCalendarGrid" class="calendar-grid"></div><p class="calendar-legend"><span>绿色：已打卡</span><span>橙点：含强化词</span></p></div>
+          <div class="queue-title"><span>打卡日期</span><small id="historyCount">0 天</small></div><div id="historyList" class="history-list"></div>
+        </aside>
+        <section id="historyDetail" class="history-detail"></section>
+      </div>
+    </section>
+  </main>
+  <dialog id="dateDialog" class="date-dialog">
+    <button class="dialog-close" id="closeDateDialog" aria-label="关闭">×</button>
+    <p class="eyebrow">STUDY DATE</p><h2>推进学习日期</h2>
+    <p>用于补学或提前查看复习安排。选择如何处理尚未打卡的当前任务。</p>
+    <div class="date-snapshot"><div><span>真实今天</span><strong id="realDateText"></strong></div><div><span>当前学习日</span><strong id="currentStudyDateText"></strong></div></div>
+    <label class="policy-label">未完成任务处理<select id="dateTaskPolicy"><option value="carry">保留并顺延，同时加入到期复习</option><option value="skip">跳过当前任务，生成目标日任务</option></select></label>
+    <div class="jump-options"><button data-jump="1">下一天</button><button data-jump="2">+ 2 天</button><button data-jump="7">+ 7 天</button><button data-jump="30">+ 30 天</button></div>
+    <label>或指定日期<input type="date" id="jumpDate"></label>
+    <button class="primary" id="jumpDateBtn">前往该日期</button>
+    <button class="text-action" id="resetDateBtn">恢复到真实今天</button>
+    <p class="date-help">“保留并顺延”不会丢失当前完成状态，并会补入目标日期前到期的复习；“跳过”不计进度，也不会改写历史。</p>
+  </dialog>
+  <dialog id="historyDialog" class="date-dialog history-dialog">
+    <button class="dialog-close" id="closeHistoryDialog" aria-label="关闭">×</button>
+    <div id="historyDialogContent"></div>
+  </dialog>
+  <dialog id="wordPreviewDialog" class="word-preview-dialog">
+    <button class="preview-close" id="closeWordPreview" aria-label="关闭词条详情">×</button>
+    <div id="wordPreviewContent"></div>
+  </dialog>
+  <div id="toast" role="status"></div>
+  <script src="data/exam-vocab.js"></script>
+  <script src="vocab.js"></script>
+  <script src="app-meta.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
