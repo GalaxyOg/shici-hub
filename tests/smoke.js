@@ -103,6 +103,11 @@ const app = fs.readFileSync('app.js', 'utf8') + `
   renderProjectMeta,
   checkForUpdates,
   fetchLatestRelease,
+  releaseZipAsset,
+  isPagesDeployment,
+  progressExportPayload,
+  parseProgressImport,
+  applyImportedProgress,
 };`;
 vm.runInThisContext(app, { filename: 'app.js' });
 
@@ -548,6 +553,12 @@ assert.match(home, /作者 <a[^>]+>落日七号<\/a>/, 'the guide should credit 
 assert.match(home, /id="checkUpdateBtn"/, 'the guide should expose a manual update check');
 assert.match(home, /id="updateStatus" role="status" aria-live="polite"/, 'update results should be announced accessibly');
 assert.match(home, /github\.com\/luori7hao\/shici-memory\/releases/, 'the guide should keep a direct fallback link to release history');
+assert.match(home, /id="downloadUpdateLink"/, 'the guide should provide a one-click download link for new releases');
+assert.match(home, /id="reloadForUpdateBtn"/, 'the guide should provide a refresh shortcut for the Pages deployment');
+assert.match(home, /id="pagesLink"[^>]*luori7hao\.github\.io\/shici-memory/, 'the guide should link to the online GitHub Pages deployment');
+assert.match(home, /id="exportDataBtn"/, 'the plan page should offer a learning-progress export');
+assert.match(home, /id="importDataBtn"/, 'the plan page should offer a learning-progress import');
+assert.match(home, /id="importDataInput"[^>]*accept="application\/json,\.json"/, 'the import input should accept JSON backups');
 assert.ok(home.indexOf('app-meta.js') < home.indexOf('app.js'), 'application metadata must load before the main script');
 
 const packageMeta = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -560,12 +571,44 @@ const releaseWorkflow = fs.readFileSync('.github/workflows/release.yml', 'utf8')
 assert.match(releaseWorkflow, /tags:\s*\n\s*- 'v\*\.\*\.\*'/, 'version tags should trigger the release workflow');
 assert.match(releaseWorkflow, /gh release create/, 'the release workflow should create a GitHub Release');
 assert.match(releaseWorkflow, /sha256sum/, 'release downloads should include a SHA-256 checksum');
+const pagesWorkflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
+assert.match(pagesWorkflow, /branches:\s*\n\s*- main/, 'pushes to main should trigger the Pages deployment');
+assert.match(pagesWorkflow, /node tests\/smoke\.js/, 'the Pages workflow must run the smoke tests before publishing');
+assert.match(pagesWorkflow, /actions\/deploy-pages/, 'the Pages workflow should deploy through actions/deploy-pages');
+assert.match(pagesWorkflow, /enablement: true/, 'the Pages workflow should enable Pages automatically on first deploy');
 
 // Loading an old three-deck state must not silently opt an existing user into PTE.
 localStorage.data = {};
 localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanState({ decks: ['IELTS', 'TOEFL', 'GRE'] })));
 __appTest.reload();
 assert.deepStrictEqual(__appTest.state.decks, ['IELTS', 'TOEFL', 'GRE'], 'legacy saved deck choices should remain unchanged until the user opts into PTE');
+
+// Progress backups must round-trip through export and import across devices.
+{
+  resetState({ dailyGoal: 4 });
+  seedSession([TEST_WORDS[0]]);
+  __appTest.rate('good');
+  __appTest.checkIn();
+  const payload = __appTest.progressExportPayload();
+  assert.strictEqual(payload.app, 'shici-memory', 'the backup payload should identify the application');
+  assert.strictEqual(payload.key, STORAGE_KEY, 'the backup payload should record the storage key');
+  assert.strictEqual(payload.version, APP_META.version, 'the backup payload should record the app version');
+  assert.strictEqual(payload.data, __appTest.state, 'the backup payload should wrap the live learning state');
+  const serialized = JSON.stringify(payload);
+
+  resetState({ dailyGoal: 9 });
+  assert.strictEqual(Object.keys(__appTest.state.records).length, 0, 'the fixture should restart from an empty state');
+  const imported = __appTest.applyImportedProgress(__appTest.parseProgressImport(serialized));
+  assert.strictEqual(Object.keys(imported.records).length, 1, 'importing a backup should restore learned records');
+  assert.strictEqual(imported.dailyGoal, 4, 'importing a backup should restore the saved plan');
+  assert.strictEqual(imported.checkins.length, 1, 'importing a backup should restore check-in history');
+  assert.strictEqual(JSON.parse(localStorage.getItem(STORAGE_KEY)).dailyGoal, 4, 'an imported backup must be persisted to localStorage');
+  assert.strictEqual(__appTest.state, imported, 'the live state should switch to the imported data');
+  assert.strictEqual(__appTest.parseProgressImport(JSON.stringify(imported)).dailyGoal, 4, 'a raw state JSON should import without the wrapper');
+  assert.throws(() => __appTest.parseProgressImport('not json'), /JSON/, 'invalid JSON should be rejected with a readable error');
+  assert.throws(() => __appTest.parseProgressImport('{"foo":1}'), /备份/, 'unrelated JSON must not overwrite learning records');
+  assert.throws(() => __appTest.parseProgressImport('[1,2,3]'), /备份/, 'array payloads must be rejected');
+}
 
 const response = (status, body = {}) => ({
   ok: status >= 200 && status < 300,
@@ -580,8 +623,9 @@ const response = (status, body = {}) => ({
   assert.strictEqual(__appTest.compareVersions('not-a-version', '1.0.0'), null, 'invalid release tags must not be treated as current');
 
   __appTest.renderProjectMeta();
-  assert.strictEqual(node('#currentVersion').textContent, 'v1.0.0', 'the guide should render the local application version');
+  assert.strictEqual(node('#currentVersion').textContent, 'v1.0.1', 'the guide should render the local application version');
   assert.strictEqual(node('#authorLink').textContent, '落日七号', 'the guide should render the project author from metadata');
+  assert.strictEqual(node('#pagesLink').href, 'https://luori7hao.github.io/shici-memory/', 'the guide should link to the online GitHub Pages deployment');
 
   const learningStateBeforeUpdateChecks = localStorage.getItem(STORAGE_KEY);
   let requestCount = 0;
@@ -594,16 +638,44 @@ const response = (status, body = {}) => ({
   const duplicateCheck = __appTest.checkForUpdates(deferredFetch, { online: true, timeoutMs: 0 });
   assert.strictEqual(firstCheck, duplicateCheck, 'repeated clicks should share the active update request');
   assert.strictEqual(node('#checkUpdateBtn').disabled, true, 'the update button should be disabled during a request');
-  resolveRelease(response(200, { tag_name: 'v1.1.0', html_url: 'https://github.com/luori7hao/shici-memory/releases/tag/v1.1.0' }));
+  resolveRelease(response(200, {
+    tag_name: 'v1.1.0',
+    html_url: 'https://github.com/luori7hao/shici-memory/releases/tag/v1.1.0',
+    assets: [{ name: 'shici-memory-v1.1.0.zip', browser_download_url: 'https://github.com/luori7hao/shici-memory/releases/download/v1.1.0/shici-memory-v1.1.0.zip' }],
+  }));
   const available = await firstCheck;
   assert.strictEqual(requestCount, 1, 'a repeated click must not send another GitHub API request');
   assert.strictEqual(available.status, 'available', 'a newer semantic version should be reported');
   assert.match(node('#updateStatus').textContent, /发现新版本 v1\.1\.0/, 'the guide should show the discovered version');
   assert.strictEqual(node('#latestReleaseLink').classList.contains('hidden'), false, 'a new version should reveal the latest-release link');
+  assert.strictEqual(available.downloadUrl, 'https://github.com/luori7hao/shici-memory/releases/download/v1.1.0/shici-memory-v1.1.0.zip', 'an update with a packaged ZIP should expose its direct download URL');
+  assert.strictEqual(node('#downloadUpdateLink').classList.contains('hidden'), false, 'a packaged new version should reveal the one-click download link');
+  assert.strictEqual(node('#downloadUpdateLink').href, available.downloadUrl, 'the one-click link should point at the release ZIP asset');
+  assert.strictEqual(node('#reloadForUpdateBtn').classList.contains('hidden'), true, 'the refresh shortcut should stay hidden outside GitHub Pages');
   assert.strictEqual(node('#checkUpdateBtn').disabled, false, 'the update button should recover after a request');
 
+  const availableNoZip = await __appTest.checkForUpdates(
+    async () => response(200, { tag_name: 'v1.2.0' }),
+    { online: true, timeoutMs: 0 },
+  );
+  assert.strictEqual(availableNoZip.status, 'available', 'a newer release without a ZIP asset should still be reported');
+  assert.strictEqual(availableNoZip.downloadUrl, undefined, 'without a ZIP asset there is no direct download URL');
+  assert.strictEqual(node('#downloadUpdateLink').classList.contains('hidden'), true, 'without a ZIP asset the download link should hide again');
+
+  assert.strictEqual(__appTest.isPagesDeployment(), false, 'the Node test environment must not read as GitHub Pages');
+  globalThis.location = { hostname: 'luori7hao.github.io' };
+  const pagesUpdate = await __appTest.checkForUpdates(
+    async () => response(200, { tag_name: 'v1.1.0', assets: [{ name: 'shici-memory-v1.1.0.zip', browser_download_url: 'https://example.invalid/shici-memory.zip' }] }),
+    { online: true, timeoutMs: 0 },
+  );
+  assert.strictEqual(pagesUpdate.channel, 'pages', 'on GitHub Pages a newer release should switch to the refresh channel');
+  assert.strictEqual(node('#reloadForUpdateBtn').classList.contains('hidden'), false, 'GitHub Pages should offer one-click refresh instead of a download');
+  assert.strictEqual(node('#downloadUpdateLink').classList.contains('hidden'), true, 'GitHub Pages must not push a ZIP download');
+  assert.match(node('#updateStatus').textContent, /立即刷新/, 'the Pages update message should point at the refresh action');
+  delete globalThis.location;
+
   const current = await __appTest.checkForUpdates(
-    async () => response(200, { tag_name: 'v1.0.0' }),
+    async () => response(200, { tag_name: 'v1.0.1' }),
     { online: true, timeoutMs: 0 },
   );
   assert.strictEqual(current.status, 'current', 'an equal GitHub release should report the app as current');

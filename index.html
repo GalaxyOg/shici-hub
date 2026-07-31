@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#f4f0e6" />
   <meta name="author" content="落日七号" />
   <meta name="application-name" content="拾词" />
+  <meta name="description" content="拾词：零依赖的 IELTS / TOEFL / GRE / PTE Academic 间隔复习网页应用，学习记录保存在浏览器本地。" />
   <title>拾词 · IELTS / TOEFL / GRE / PTE 记忆计划</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,19 +47,21 @@
       <section class="guide-data">
         <div><p class="eyebrow">CURRENT PLAN</p><h2 id="guidePlanTitle">每天 10 个新词</h2><p id="guidePlanMeta"></p></div>
         <div><p class="eyebrow">TODAY'S ORDER</p><p>① 到期复习按第2/3/7/30天分组；② 同组内优先逾期与历史费力词；③ 最后加入尚未学过的高频新词。每日数量只限制新词，复习不占额度。</p></div>
-        <div><p class="eyebrow">ABOUT THE DATA</p><p>基础双解、音标、词形和词频来自 MIT License 的 ECDICT。PTE Academic 基于 Academic Word List 的 570 个学术词头建立第三方学习范围，释义仍来自 ECDICT；它不是 Pearson 官方词表，也不代表 Pearson 推荐或背书。</p></div>
+        <div><p class="eyebrow">ABOUT THE DATA</p><p>基础双解、音标、词形和词频来自 MIT License 的 ECDICT。PTE Academic 基于 Academic Word List 的 570 个学术词头建立第三方学习范围，释义仍来自 ECDICT；它不是 Pearson 官方词表，也不代表 Pearson 推荐或背书。学习记录只保存在当前浏览器本地，不上传到任何服务器；换设备或换浏览器时，请在“计划”页使用导出 / 导入备份。</p></div>
       </section>
       <section class="project-update" id="projectUpdate" data-state="idle" aria-labelledby="projectUpdateTitle">
         <div class="project-identity">
           <p class="eyebrow">PROJECT</p>
-          <h2 id="projectUpdateTitle">拾词 <span id="currentVersion">v1.0.0</span></h2>
-          <p>作者 <a id="authorLink" href="https://github.com/luori7hao" target="_blank" rel="noopener noreferrer">落日七号</a> · <a id="repositoryLink" href="https://github.com/luori7hao/shici-memory" target="_blank" rel="noopener noreferrer">GitHub 源码</a></p>
+          <h2 id="projectUpdateTitle">拾词 <span id="currentVersion">v1.0.1</span></h2>
+          <p>作者 <a id="authorLink" href="https://github.com/luori7hao" target="_blank" rel="noopener noreferrer">落日七号</a> · <a id="repositoryLink" href="https://github.com/luori7hao/shici-memory" target="_blank" rel="noopener noreferrer">GitHub 源码</a> · <a id="pagesLink" href="https://luori7hao.github.io/shici-memory/" target="_blank" rel="noopener noreferrer">在线版</a></p>
         </div>
         <div class="update-panel">
           <p class="eyebrow">GITHUB RELEASES</p>
           <p class="update-status" id="updateStatus" role="status" aria-live="polite">点击检查 GitHub 中是否有新的正式版本；不会上传本地学习记录。</p>
           <div class="update-actions">
             <button class="text-action check-update" id="checkUpdateBtn" type="button">检查更新</button>
+            <a class="update-link update-download hidden" id="downloadUpdateLink" href="https://github.com/luori7hao/shici-memory/releases/latest">一键下载新版 ZIP ↓</a>
+            <button class="text-action update-reload hidden" id="reloadForUpdateBtn" type="button">立即刷新用上新版</button>
             <a class="update-link hidden" id="latestReleaseLink" href="https://github.com/luori7hao/shici-memory/releases/latest" target="_blank" rel="noopener noreferrer">查看新版本 →</a>
             <a class="update-link" id="allReleasesLink" href="https://github.com/luori7hao/shici-memory/releases" target="_blank" rel="noopener noreferrer">全部历史版本</a>
           </div>
@@ -179,6 +182,15 @@
           <fieldset><legend>我的目标词库</legend><label><input type="checkbox" name="deck" value="IELTS" checked> IELTS 雅思</label><label><input type="checkbox" name="deck" value="TOEFL" checked> TOEFL 托福</label><label><input type="checkbox" name="deck" value="GRE" checked> GRE</label><label><input type="checkbox" name="deck" value="PTE" checked> PTE Academic</label></fieldset>
           <label class="basic-toggle"><span><input type="checkbox" id="excludeBasic"> 跳过中考 / 高考基础词</span><small>依据 ECDICT 的 zk、gk 标签；未打卡的今日任务会立即重排</small></label>
           <button class="primary" type="submit">保存计划</button><button class="danger-link" type="button" id="resetBtn">重置全部学习记录</button>
+          <div class="data-transfer">
+            <p class="section-label">数据备份与迁移</p>
+            <p class="data-transfer-note">学习记录只保存在当前浏览器本地（localStorage），不会上传。换设备、换浏览器，或在本地版与在线版之间迁移进度时，先在旧环境导出，再到新环境导入。</p>
+            <div class="data-transfer-actions">
+              <button type="button" class="text-action" id="exportDataBtn">导出学习记录</button>
+              <button type="button" class="text-action" id="importDataBtn">导入学习记录</button>
+            </div>
+            <input type="file" id="importDataInput" class="hidden" accept="application/json,.json">
+          </div>
           <p id="pendingPlanNote" class="pending-plan hidden"></p>
         </form>
       </div>

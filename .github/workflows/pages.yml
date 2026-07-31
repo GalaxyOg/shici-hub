@@ -1,0 +1,57 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Validate app before publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check tests/smoke.js
+          node tests/smoke.js
+
+      - name: Build static site
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site/data/source/PTE
+          cp index.html app-meta.js app.js vocab.js styles.css enhancements.css README.md CHANGELOG.md THIRD_PARTY_NOTICES.md _site/
+          cp data/exam-vocab.js data/exam-vocab-stats.json data/pte-vocab-report.json data/ECDICT_LICENSE data/ECDICT_README.md _site/data/
+          cp data/source/PTE/LICENSE data/source/PTE/README.md _site/data/source/PTE/
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -2,11 +2,12 @@
 
 一个零依赖的 IELTS / TOEFL / GRE / PTE Academic 间隔复习网页应用。项目将这套节奏称为 **BS 记忆法**（Build & Strengthen）：先建立记忆，再在第 2、3、7、30 天阶段强化。学习记录保存在浏览器 `localStorage` 中。
 
-作者：[落日七号](https://github.com/luori7hao) · 当前版本：`v1.0.0` · 仓库：[luori7hao/shici-memory](https://github.com/luori7hao/shici-memory)
+作者：[落日七号](https://github.com/luori7hao) · 当前版本：`v1.0.1` · 仓库：[luori7hao/shici-memory](https://github.com/luori7hao/shici-memory) · 在线版：<https://luori7hao.github.io/shici-memory/>
 
 ## 使用
 
-直接双击 `index.html`，或在此目录运行任意静态服务器，例如：
+- **在线版（推荐）**：直接访问 <https://luori7hao.github.io/shici-memory/>。推送 `main` 分支后 GitHub Pages 会自动重新部署，访问者刷新页面即为最新版。
+- **本地版**：从 [GitHub Releases](https://github.com/luori7hao/shici-memory/releases) 下载 ZIP 解压后直接双击 `index.html`，或在此目录运行任意静态服务器，例如：
 
 ```powershell
 python -m http.server 8080
@@ -18,7 +19,22 @@ python -m http.server 8080
 
 正式版本统一保存在 [GitHub Releases](https://github.com/luori7hao/shici-memory/releases)。每个 Release 都包含可直接运行的 ZIP 包和 SHA-256 校验文件，Git 标签同时保留该版本的完整源码历史。
 
-网页“说明”页底部提供“检查更新”按钮，它只会匿名读取 GitHub 最新正式 Release 的版本号，不会上传学习记录，也不会自动安装。发现新版后可跳转到 GitHub 查看更新说明并下载；离线、尚无 Release 或遇到 GitHub 匿名访问限流时，仍可直接打开历史版本页。
+网页“说明”页底部提供“检查更新”按钮，它只会匿名读取 GitHub 最新正式 Release 的版本号，不会上传学习记录，也不会自动安装。发现新版本后：
+
+- **本地版**会显示“一键下载新版 ZIP”，点击直接下载 Release 中的更新包；下载后解压覆盖旧文件即可（学习记录在浏览器里，不会因替换文件丢失）。浏览器出于安全限制无法自动覆盖本地文件，因此本地版没有全自动安装。
+- **在线版**会显示“立即刷新用上新版”，因为 Pages 部署的站点始终是最新发布内容，刷新即完成更新。
+
+离线、尚无 Release 或遇到 GitHub 匿名访问限流时，仍可直接打开历史版本页。
+
+## 学习进度保存在哪里
+
+应用没有账号系统，也没有服务器：全部学习记录（计划、进度、打卡、历史）保存在**当前浏览器的 `localStorage`** 中（键名 `shici-memory-v1`）。这意味着：
+
+- 同一台设备、同一个浏览器、同一个地址再次打开时，进度自动还原，无需登录。
+- `localStorage` 按“地址 + 浏览器 + 设备”隔离：本地 `index.html`、`localhost` 和在线版 `luori7hao.github.io` 互相是不同的存储空间，进度**不互通**；换浏览器或换电脑也不互通。
+- 清除浏览器站点数据（或无痕模式关闭窗口）会清空进度。
+
+因此“计划”页提供了**导出 / 导入学习记录**：导出会下载一份 JSON 备份文件，在新设备、新浏览器或在线版中导入即可完整迁移进度。建议定期导出留底。
 
 ## 已实现
 
@@ -74,7 +90,7 @@ git push origin main
 git push origin v1.1.0
 ```
 
-`v*.*.*` 标签会触发 `.github/workflows/release.yml`：校验标签与应用版本、运行测试、打包运行文件、生成 SHA-256，并创建对应 GitHub Release。应用版本与 `localStorage` 的 `shici-memory-v1` 存储键相互独立；普通发版不要修改存储键，以免影响已有学习记录。
+`v*.*.*` 标签会触发 `.github/workflows/release.yml`：校验标签与应用版本、运行测试、打包运行文件、生成 SHA-256，并创建对应 GitHub Release。推送 `main` 分支会触发 `.github/workflows/pages.yml`，先运行测试再把运行文件部署到 GitHub Pages 在线版。应用版本与 `localStorage` 的 `shici-memory-v1` 存储键相互独立；普通发版不要修改存储键，以免影响已有学习记录。
 
 ## 作者与许可
 
