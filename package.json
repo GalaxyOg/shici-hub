@@ -10,7 +10,10 @@
   },
   "homepage": "https://luori7hao.github.io/shici-memory/",
   "scripts": {
-    "test": "node tests/smoke.js",
-    "check": "node --check app.js && node --check tests/smoke.js"
+    "test": "npm run test:smoke && npm run test:sync && npm run test:api",
+    "test:smoke": "node tests/smoke.js",
+    "test:sync": "node tests/sync_test.js",
+    "test:api": "python3 -m unittest tests.api_test -v",
+    "check": "node --check app.js && node --check tests/smoke.js && node --check tests/sync_harness.js && node --check tests/sync_test.js && python3 -m py_compile server.py tests/api_test.py"
   }
 }
