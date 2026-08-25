@@ -119,6 +119,7 @@ function cleanState(overrides = {}) {
     dailyGoal: 3,
     decks: ['IELTS', 'TOEFL', 'GRE', 'PTE'],
     excludeBasic: false,
+    revealMode: false,
     pendingPlan: null,
     queueCollapsed: false,
     hasSeenGuide: true,
@@ -608,6 +609,52 @@ assert.deepStrictEqual(__appTest.state.decks, ['IELTS', 'TOEFL', 'GRE'], 'legacy
   assert.throws(() => __appTest.parseProgressImport('not json'), /JSON/, 'invalid JSON should be rejected with a readable error');
   assert.throws(() => __appTest.parseProgressImport('{"foo":1}'), /备份/, 'unrelated JSON must not overwrite learning records');
   assert.throws(() => __appTest.parseProgressImport('[1,2,3]'), /备份/, 'array payloads must be rejected');
+}
+
+// Reveal-mode hides every answer until peeked, stays off for legacy data, and never leaks across presentations.
+{
+  const [first, second] = TEST_WORDS;
+  // Legacy payloads without the key must load with reveal mode off via the defaults merge.
+  localStorage.data[STORAGE_KEY] = JSON.stringify({ dailyGoal: 3, decks: ['IELTS'], excludeBasic: false, records: {}, checkins: [], history: {}, session: null });
+  __appTest.reload();
+  assert.strictEqual(__appTest.state.revealMode, false, 'legacy data without the key should load with reveal mode off');
+
+  resetState();
+  seedSession([first, second]);
+
+  assert.strictEqual(__appTest.state.revealMode, false, 'reveal mode must default to off for existing users');
+  assert.strictEqual(node('#wordSheet').classList.contains('masked'), false, 'the sheet should not be masked while reveal mode is off');
+
+  __appTest.state.revealMode = true;
+  __appTest.save();
+  const sessionItem = __appTest.state.session.items[0];
+  __appTest.renderWord(__appTest.currentItem());
+  const sheetNode = node('#wordSheet');
+  assert.strictEqual(sheetNode.classList.contains('masked'), true, 'enabling reveal mode should mask the current card immediately');
+  assert.strictEqual(sheetNode.classList.contains('peek-open'), false, 'a fresh presentation must start fully hidden');
+  assert.match(node('#peekBtn').textContent, /偷看释义/, 'the masked sheet should offer a peek action');
+  assert.strictEqual(node('#ratingActions').classList.contains('hidden'), false, 'rating buttons stay actionable while the answers are hidden');
+
+  node('#peekBtn').onclick();
+  assert.strictEqual(sheetNode.classList.contains('peek-open'), true, 'peeking should reveal the answer zone');
+  assert.strictEqual(node('#peekBtn').textContent, '收起', 'the peek control should become a collapse action after revealing');
+  assert.strictEqual(sessionItem.peeks, 1, 'each reveal should persist a peek counter on the canonical session item');
+
+  __appTest.renderWord(__appTest.currentItem());
+  assert.strictEqual(sheetNode.classList.contains('masked'), true, 're-rendering keeps reveal mode active');
+  assert.strictEqual(sheetNode.classList.contains('peek-open'), false, 'every new presentation must start hidden again without persisted peek state');
+  node('#peekBtn').onclick();
+  assert.strictEqual(sessionItem.peeks, 2, 'peeks on a later presentation should keep accumulating');
+
+  __appTest.rate('good');
+  assert.strictEqual(__appTest.currentItem().w, second, 'rating must work while the answers are hidden');
+  assert.strictEqual(sheetNode.classList.contains('masked'), true, 'the next card starts masked as well');
+  assert.strictEqual(sheetNode.classList.contains('peek-open'), false, 'the next card must not inherit a peeked state');
+
+  resetState();
+  __appTest.state.revealMode = true;
+  seedSession([first], { checkedIn: true, checkinDate: __appTest.dateKey() });
+  assert.strictEqual(node('#wordSheet').classList.contains('masked'), false, 'post-check-in review stays fully expanded regardless of the switch');
 }
 
 const response = (status, body = {}) => ({

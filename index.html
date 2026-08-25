@@ -125,28 +125,31 @@
             <div><h2 id="wordTitle"></h2><p id="phonetic"></p></div>
             <button class="sound" id="speakBtn" aria-label="朗读单词"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 4V5L9 9H5Zm12.5 3a4.5 4.5 0 0 0-2-3.74v7.48a4.5 4.5 0 0 0 2-3.74Z"/><path d="M15.5 3.6v2.1a7 7 0 0 1 0 12.6v2.1a9 9 0 0 0 0-16.8Z"/></svg><span>朗读</span></button>
           </div>
-          <p class="meaning" id="meaning"></p>
-          <div id="meaningList" class="meaning-list"></div>
-          <div class="definition-block">
-            <p class="section-label">English definition</p>
-            <p id="englishDefinition"></p>
-            <div id="senseList" class="sense-list"></div>
+          <button type="button" id="peekBtn" class="peek-btn" aria-label="偷看释义"></button>
+          <div id="answerZone" class="answer-zone">
+            <p class="meaning" id="meaning"></p>
+            <div id="meaningList" class="meaning-list"></div>
+            <div class="definition-block">
+              <p class="section-label">English definition</p>
+              <p id="englishDefinition"></p>
+              <div id="senseList" class="sense-list"></div>
+            </div>
+            <div class="example-block" id="exampleBlock">
+              <p class="section-label">例句</p>
+              <p id="example"></p>
+              <p id="exampleZh" class="translation"></p>
+              <button class="text-action" id="speakSentenceBtn">▶ 朗读例句</button>
+            </div>
+            <div class="relations">
+              <div><p class="section-label" id="synonymLabel">同义联想</p><div id="synonyms" class="word-links"></div></div>
+              <div><p class="section-label">对比 / 词根</p><p id="memoryNote" class="note"></p></div>
+            </div>
+            <div class="relations word-notes">
+              <div><p class="section-label">词形变化</p><p id="wordFamily" class="note"></p></div>
+              <div><p class="section-label">常用搭配</p><p id="collocations" class="note"></p></div>
+            </div>
+            <div id="glossaryBlock" class="glossary"><p class="section-label">例句难词</p><div id="glossary"></div></div>
           </div>
-          <div class="example-block" id="exampleBlock">
-            <p class="section-label">例句</p>
-            <p id="example"></p>
-            <p id="exampleZh" class="translation"></p>
-            <button class="text-action" id="speakSentenceBtn">▶ 朗读例句</button>
-          </div>
-          <div class="relations">
-            <div><p class="section-label" id="synonymLabel">同义联想</p><div id="synonyms" class="word-links"></div></div>
-            <div><p class="section-label">对比 / 词根</p><p id="memoryNote" class="note"></p></div>
-          </div>
-          <div class="relations word-notes">
-            <div><p class="section-label">词形变化</p><p id="wordFamily" class="note"></p></div>
-            <div><p class="section-label">常用搭配</p><p id="collocations" class="note"></p></div>
-          </div>
-          <div id="glossaryBlock" class="glossary"><p class="section-label">例句难词</p><div id="glossary"></div></div>
           <div class="rating">
             <p id="ratingPrompt">这次记得怎么样？</p>
             <div id="ratingActions">
@@ -181,6 +184,7 @@
           <label>每天学习新词<input id="dailyGoal" type="number" min="1" max="50" value="10"><span>个</span></label>
           <fieldset><legend>我的目标词库</legend><label><input type="checkbox" name="deck" value="IELTS" checked> IELTS 雅思</label><label><input type="checkbox" name="deck" value="TOEFL" checked> TOEFL 托福</label><label><input type="checkbox" name="deck" value="GRE" checked> GRE</label><label><input type="checkbox" name="deck" value="PTE" checked> PTE Academic</label></fieldset>
           <label class="basic-toggle"><span><input type="checkbox" id="excludeBasic"> 跳过中考 / 高考基础词</span><small>依据 ECDICT 的 zk、gk 标签；未打卡的今日任务会立即重排</small></label>
+          <label class="basic-toggle"><span><input type="checkbox" id="revealMode"> 先藏释义，再回想（主动回忆）</span><small>开启后学习卡片只显示单词与音标；「偷看」可临时展开全部释义，每轮强化都会重新隐藏。设置随云端同步共享到所有设备。</small></label>
           <button class="primary" type="submit">保存计划</button><button class="danger-link" type="button" id="resetBtn">重置全部学习记录</button>
           <div class="data-transfer">
             <p class="section-label">数据备份与迁移</p>
