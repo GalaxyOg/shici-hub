@@ -306,6 +306,22 @@ class BackendTest(unittest.TestCase):
             body = resp.read().decode("utf-8")
         self.assertIn("function load()", body)
 
+    # -- cache headers -----------------------------------------------------------
+    def test_static_responses_require_revalidation(self):
+        req = urllib.request.Request(self.base + "/app.js")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            cache_control = [value for key, value in resp.headers.items() if key.lower() == "cache-control"]
+        self.assertEqual(
+            cache_control, ["no-cache"],
+            "static files must revalidate on every load so WebViews cannot serve stale scripts")
+
+    def test_api_health_stays_no_store(self):
+        with urllib.request.urlopen(urllib.request.Request(self.base + "/api/health"), timeout=10) as resp:
+            cache_control = [value for key, value in resp.headers.items() if key.lower() == "cache-control"]
+        self.assertEqual(
+            cache_control, ["no-store"],
+            "API responses must keep no-store and never gain the static revalidation header")
+
     # -- storage layer -------------------------------------------------------------
     def test_corrupt_file_quarantined_and_recovers(self):
         path = os.path.join(self.data_dir, "state.json")

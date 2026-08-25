@@ -169,6 +169,23 @@ class Handler(SimpleHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(body)
 
+    def end_headers(self):
+        """Flush headers, attaching a revalidation policy to static responses.
+
+        Static files get Cache-Control: no-cache so every load is revalidated
+        against the server (unchanged files still cost only an If-Modified-Since
+        304 round-trip) - WebViews such as WeChat's heuristically cache scripts,
+        which would otherwise keep serving a stale app.js after deployment.
+        API responses already set their own Cache-Control (no-store) in send_json
+        before this runs, so they are left untouched.
+        """
+        path = self.path.split("?", 1)[0]
+        if not path.startswith("/api/"):
+            buffered = any(line.lower().startswith(b"cache-control:") for line in self._headers_buffer)
+            if not buffered:
+                self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
     def _parse_content_length(self):
         """Return (length, ok). Missing header means an empty body; malformed or
         negative values are reported as errors instead of raising."""
