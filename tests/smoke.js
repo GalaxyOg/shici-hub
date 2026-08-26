@@ -813,7 +813,7 @@ const response = (status, body = {}) => ({
   assert.strictEqual(__appTest.compareVersions('not-a-version', '1.0.0'), null, 'invalid release tags must not be treated as current');
 
   __appTest.renderProjectMeta();
-  assert.strictEqual(node('#currentVersion').textContent, 'v1.0.1', 'the guide should render the local application version');
+  assert.strictEqual(node('#currentVersion').textContent, 'v' + APP_META.version, 'the guide should render the local application version');
   assert.strictEqual(node('#authorLink').textContent, '落日七号', 'the guide should render the project author from metadata');
   assert.strictEqual(node('#pagesLink').href, 'https://luori7hao.github.io/shici-memory/', 'the guide should link to the online GitHub Pages deployment');
 
@@ -828,24 +828,28 @@ const response = (status, body = {}) => ({
   const duplicateCheck = __appTest.checkForUpdates(deferredFetch, { online: true, timeoutMs: 0 });
   assert.strictEqual(firstCheck, duplicateCheck, 'repeated clicks should share the active update request');
   assert.strictEqual(node('#checkUpdateBtn').disabled, true, 'the update button should be disabled during a request');
+  const [curMajor = '1', curMinor = '0'] = APP_META.version.split('.');
+  const newerTag = `v${curMajor}.${Number(curMinor) + 1}.0`;
+  const newestNoZipTag = `v${curMajor}.${Number(curMinor) + 2}.0`;
+  const sameTag = `v${APP_META.version}`;
   resolveRelease(response(200, {
-    tag_name: 'v1.1.0',
-    html_url: 'https://github.com/luori7hao/shici-memory/releases/tag/v1.1.0',
-    assets: [{ name: 'shici-memory-v1.1.0.zip', browser_download_url: 'https://github.com/luori7hao/shici-memory/releases/download/v1.1.0/shici-memory-v1.1.0.zip' }],
+    tag_name: newerTag,
+    html_url: `https://github.com/luori7hao/shici-memory/releases/tag/${newerTag}`,
+    assets: [{ name: `shici-memory-${newerTag}.zip`, browser_download_url: `https://github.com/luori7hao/shici-memory/releases/download/${newerTag}/shici-memory-${newerTag}.zip` }],
   }));
   const available = await firstCheck;
   assert.strictEqual(requestCount, 1, 'a repeated click must not send another GitHub API request');
   assert.strictEqual(available.status, 'available', 'a newer semantic version should be reported');
-  assert.match(node('#updateStatus').textContent, /发现新版本 v1\.1\.0/, 'the guide should show the discovered version');
+  assert.match(node('#updateStatus').textContent, new RegExp(`发现新版本 ${newerTag}`), 'the guide should show the discovered version');
   assert.strictEqual(node('#latestReleaseLink').classList.contains('hidden'), false, 'a new version should reveal the latest-release link');
-  assert.strictEqual(available.downloadUrl, 'https://github.com/luori7hao/shici-memory/releases/download/v1.1.0/shici-memory-v1.1.0.zip', 'an update with a packaged ZIP should expose its direct download URL');
+  assert.strictEqual(available.downloadUrl, `https://github.com/luori7hao/shici-memory/releases/download/${newerTag}/shici-memory-${newerTag}.zip`, 'an update with a packaged ZIP should expose its direct download URL');
   assert.strictEqual(node('#downloadUpdateLink').classList.contains('hidden'), false, 'a packaged new version should reveal the one-click download link');
   assert.strictEqual(node('#downloadUpdateLink').href, available.downloadUrl, 'the one-click link should point at the release ZIP asset');
   assert.strictEqual(node('#reloadForUpdateBtn').classList.contains('hidden'), true, 'the refresh shortcut should stay hidden outside GitHub Pages');
   assert.strictEqual(node('#checkUpdateBtn').disabled, false, 'the update button should recover after a request');
 
   const availableNoZip = await __appTest.checkForUpdates(
-    async () => response(200, { tag_name: 'v1.2.0' }),
+    async () => response(200, { tag_name: newestNoZipTag }),
     { online: true, timeoutMs: 0 },
   );
   assert.strictEqual(availableNoZip.status, 'available', 'a newer release without a ZIP asset should still be reported');
@@ -855,7 +859,7 @@ const response = (status, body = {}) => ({
   assert.strictEqual(__appTest.isPagesDeployment(), false, 'the Node test environment must not read as GitHub Pages');
   globalThis.location = { hostname: 'luori7hao.github.io' };
   const pagesUpdate = await __appTest.checkForUpdates(
-    async () => response(200, { tag_name: 'v1.1.0', assets: [{ name: 'shici-memory-v1.1.0.zip', browser_download_url: 'https://example.invalid/shici-memory.zip' }] }),
+    async () => response(200, { tag_name: newerTag, assets: [{ name: `shici-memory-${newerTag}.zip`, browser_download_url: 'https://example.invalid/shici-memory.zip' }] }),
     { online: true, timeoutMs: 0 },
   );
   assert.strictEqual(pagesUpdate.channel, 'pages', 'on GitHub Pages a newer release should switch to the refresh channel');
@@ -865,7 +869,7 @@ const response = (status, body = {}) => ({
   delete globalThis.location;
 
   const current = await __appTest.checkForUpdates(
-    async () => response(200, { tag_name: 'v1.0.1' }),
+    async () => response(200, { tag_name: sameTag }),
     { online: true, timeoutMs: 0 },
   );
   assert.strictEqual(current.status, 'current', 'an equal GitHub release should report the app as current');
