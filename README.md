@@ -2,12 +2,14 @@
 
 一个零依赖的 IELTS / TOEFL / GRE / PTE Academic 间隔复习网页应用。项目将这套节奏称为 **BS 记忆法**（Build & Strengthen）：先建立记忆，再在第 2、3、7、30 天阶段强化。学习记录保存在浏览器 `localStorage` 中。
 
-作者：[落日七号](https://github.com/luori7hao) · 当前版本：`v1.0.1` · 仓库：[luori7hao/shici-memory](https://github.com/luori7hao/shici-memory) · 在线版：<https://luori7hao.github.io/shici-memory/>
+作者：[落日七号](https://github.com/luori7hao)（项目原作者） · 当前版本：`v1.1.0` · 发布仓库：[GalaxyOg/shici-hub](https://github.com/GalaxyOg/shici-hub) · 在线版：<https://galaxyog.github.io/shici-hub/>
+
+> 本项目 fork 自 [luori7hao/shici-memory](https://github.com/luori7hao/shici-memory)。正式发布（GitHub Release、ZIP 更新包、Pages 在线版）均以本仓库 `GalaxyOg/shici-hub` 为准。
 
 ## 使用
 
-- **在线版（推荐）**：直接访问 <https://luori7hao.github.io/shici-memory/>。推送 `main` 分支后 GitHub Pages 会自动重新部署，访问者刷新页面即为最新版。
-- **本地版**：从 [GitHub Releases](https://github.com/luori7hao/shici-memory/releases) 下载 ZIP 解压后直接双击 `index.html`，或在此目录运行任意静态服务器，例如：
+- **在线版（推荐）**：直接访问 <https://galaxyog.github.io/shici-hub/>。推送 `main` 分支后 GitHub Pages 会自动重新部署，访问者刷新页面即为最新版。
+- **本地版**：从 [GitHub Releases](https://github.com/GalaxyOg/shici-hub/releases) 下载 ZIP 解压后直接双击 `index.html`，或在此目录运行任意静态服务器，例如：
 
 ```powershell
 python -m http.server 8080
@@ -17,7 +19,7 @@ python -m http.server 8080
 
 ## 下载与更新
 
-正式版本统一保存在 [GitHub Releases](https://github.com/luori7hao/shici-memory/releases)。每个 Release 都包含可直接运行的 ZIP 包和 SHA-256 校验文件，Git 标签同时保留该版本的完整源码历史。
+正式版本统一保存在 [GitHub Releases](https://github.com/GalaxyOg/shici-hub/releases)。每个 Release 都包含可直接运行的 ZIP 包和 SHA-256 校验文件，Git 标签同时保留该版本的完整源码历史。
 
 网页“说明”页底部提供“检查更新”按钮，它只会匿名读取 GitHub 最新正式 Release 的版本号，不会上传学习记录，也不会自动安装。发现新版本后：
 

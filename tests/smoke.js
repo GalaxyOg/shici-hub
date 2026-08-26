@@ -696,10 +696,10 @@ assert.match(home, /不是 Pearson 官方词表/, 'the interface should distingu
 assert.match(home, /作者 <a[^>]+>落日七号<\/a>/, 'the guide should credit 落日七号 as the project author');
 assert.match(home, /id="checkUpdateBtn"/, 'the guide should expose a manual update check');
 assert.match(home, /id="updateStatus" role="status" aria-live="polite"/, 'update results should be announced accessibly');
-assert.match(home, /github\.com\/luori7hao\/shici-memory\/releases/, 'the guide should keep a direct fallback link to release history');
+assert.match(home, /github\.com\/GalaxyOg\/shici-hub\/releases/, 'the guide should keep a direct fallback link to release history');
 assert.match(home, /id="downloadUpdateLink"/, 'the guide should provide a one-click download link for new releases');
 assert.match(home, /id="reloadForUpdateBtn"/, 'the guide should provide a refresh shortcut for the Pages deployment');
-assert.match(home, /id="pagesLink"[^>]*luori7hao\.github\.io\/shici-memory/, 'the guide should link to the online GitHub Pages deployment');
+assert.match(home, /id="pagesLink"[^>]*galaxyog\.github\.io\/shici-hub/, 'the guide should link to the online GitHub Pages deployment');
 assert.match(home, /id="exportDataBtn"/, 'the plan page should offer a learning-progress export');
 assert.match(home, /id="importDataBtn"/, 'the plan page should offer a learning-progress import');
 assert.match(home, /id="importDataInput"[^>]*accept="application\/json,\.json"/, 'the import input should accept JSON backups');
@@ -708,8 +708,8 @@ assert.ok(home.indexOf('app-meta.js') < home.indexOf('app.js'), 'application met
 const packageMeta = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 assert.strictEqual(APP_META.name, '拾词', 'application metadata should keep the product name');
 assert.strictEqual(APP_META.author, '落日七号', 'application metadata should keep the requested author');
-assert.strictEqual(APP_META.githubOwner, 'luori7hao', 'application metadata should target the requested GitHub account');
-assert.strictEqual(APP_META.githubRepo, 'shici-memory', 'application metadata should target the release repository');
+assert.strictEqual(APP_META.githubOwner, 'GalaxyOg', 'application metadata should target the requested GitHub account');
+assert.strictEqual(APP_META.githubRepo, 'shici-hub', 'application metadata should target the release repository');
 assert.strictEqual(APP_META.version, packageMeta.version, 'browser and release package versions must stay synchronized');
 const releaseWorkflow = fs.readFileSync('.github/workflows/release.yml', 'utf8');
 assert.match(releaseWorkflow, /tags:\s*\n\s*- 'v\*\.\*\.\*'/, 'version tags should trigger the release workflow');
@@ -815,7 +815,7 @@ const response = (status, body = {}) => ({
   __appTest.renderProjectMeta();
   assert.strictEqual(node('#currentVersion').textContent, 'v' + APP_META.version, 'the guide should render the local application version');
   assert.strictEqual(node('#authorLink').textContent, '落日七号', 'the guide should render the project author from metadata');
-  assert.strictEqual(node('#pagesLink').href, 'https://luori7hao.github.io/shici-memory/', 'the guide should link to the online GitHub Pages deployment');
+  assert.strictEqual(node('#pagesLink').href, 'https://galaxyog.github.io/shici-hub/', 'the guide should link to the online GitHub Pages deployment');
 
   const learningStateBeforeUpdateChecks = localStorage.getItem(STORAGE_KEY);
   let requestCount = 0;
@@ -834,15 +834,15 @@ const response = (status, body = {}) => ({
   const sameTag = `v${APP_META.version}`;
   resolveRelease(response(200, {
     tag_name: newerTag,
-    html_url: `https://github.com/luori7hao/shici-memory/releases/tag/${newerTag}`,
-    assets: [{ name: `shici-memory-${newerTag}.zip`, browser_download_url: `https://github.com/luori7hao/shici-memory/releases/download/${newerTag}/shici-memory-${newerTag}.zip` }],
+    html_url: `https://github.com/GalaxyOg/shici-hub/releases/tag/${newerTag}`,
+    assets: [{ name: `shici-memory-${newerTag}.zip`, browser_download_url: `https://github.com/GalaxyOg/shici-hub/releases/download/${newerTag}/shici-memory-${newerTag}.zip` }],
   }));
   const available = await firstCheck;
   assert.strictEqual(requestCount, 1, 'a repeated click must not send another GitHub API request');
   assert.strictEqual(available.status, 'available', 'a newer semantic version should be reported');
   assert.match(node('#updateStatus').textContent, new RegExp(`发现新版本 ${newerTag}`), 'the guide should show the discovered version');
   assert.strictEqual(node('#latestReleaseLink').classList.contains('hidden'), false, 'a new version should reveal the latest-release link');
-  assert.strictEqual(available.downloadUrl, `https://github.com/luori7hao/shici-memory/releases/download/${newerTag}/shici-memory-${newerTag}.zip`, 'an update with a packaged ZIP should expose its direct download URL');
+  assert.strictEqual(available.downloadUrl, `https://github.com/GalaxyOg/shici-hub/releases/download/${newerTag}/shici-memory-${newerTag}.zip`, 'an update with a packaged ZIP should expose its direct download URL');
   assert.strictEqual(node('#downloadUpdateLink').classList.contains('hidden'), false, 'a packaged new version should reveal the one-click download link');
   assert.strictEqual(node('#downloadUpdateLink').href, available.downloadUrl, 'the one-click link should point at the release ZIP asset');
   assert.strictEqual(node('#reloadForUpdateBtn').classList.contains('hidden'), true, 'the refresh shortcut should stay hidden outside GitHub Pages');
@@ -857,7 +857,7 @@ const response = (status, body = {}) => ({
   assert.strictEqual(node('#downloadUpdateLink').classList.contains('hidden'), true, 'without a ZIP asset the download link should hide again');
 
   assert.strictEqual(__appTest.isPagesDeployment(), false, 'the Node test environment must not read as GitHub Pages');
-  globalThis.location = { hostname: 'luori7hao.github.io' };
+  globalThis.location = { hostname: 'galaxyog.github.io' };
   const pagesUpdate = await __appTest.checkForUpdates(
     async () => response(200, { tag_name: newerTag, assets: [{ name: `shici-memory-${newerTag}.zip`, browser_download_url: 'https://example.invalid/shici-memory.zip' }] }),
     { online: true, timeoutMs: 0 },

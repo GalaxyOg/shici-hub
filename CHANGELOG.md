@@ -2,6 +2,13 @@
 
 本项目采用语义化版本号。每个正式版本都会保留 Git 标签、GitHub Release、可直接运行的 ZIP 包和 SHA-256 校验文件。
 
+## [1.1.1] - 2026-08-26
+
+### 变更
+
+- **发布源迁移到 GalaxyOg/shici-hub**：正式发布（GitHub Release + ZIP 更新包）、Pages 在线版和"检查更新"入口均改指向本仓库；在线版地址为 <https://galaxyog.github.io/shici-hub/>，本地版更新检查读取 `GalaxyOg/shici-hub/releases`。原 luori7hao/shici-memory 保留为上游参考，不再作为发布源。
+- Release 工作流支持手动触发（Actions → Release → Run workflow），传入 tag 名即可补发；ZIP 包内文件名保持 `shici-memory-v*` 不变。
+
 ## [1.1.0] - 2026-08-26
 
 ### 新增

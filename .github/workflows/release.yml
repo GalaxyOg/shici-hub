@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      ref_name:
+        description: "Release tag to publish (e.g. v1.1.1); required for manual runs"
+        required: true
 
 permissions:
   contents: write
@@ -22,7 +27,9 @@ jobs:
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
           META_VERSION="$(node -e "require('./app-meta.js'); process.stdout.write(globalThis.APP_META.version)")"
           test "$PACKAGE_VERSION" = "$META_VERSION"
-          test "$GITHUB_REF_NAME" = "v$PACKAGE_VERSION"
+          REF="${{ inputs.ref_name || github.ref_name }}"
+          echo "Publishing $REF (package v$PACKAGE_VERSION)"
+          test "$REF" = "v$PACKAGE_VERSION"
           node --check app.js
           node --check tests/smoke.js
           node tests/smoke.js
@@ -53,9 +60,8 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(node -p "require('./package.json').version")"
-          gh release create "$GITHUB_REF_NAME" \
+          gh release create "${{ inputs.ref_name || github.ref_name }}" \
             "dist/shici-memory-v${VERSION}.zip" \
             "dist/shici-memory-v${VERSION}.sha256" \
-            --verify-tag \
             --generate-notes \
-            --title "拾词 $GITHUB_REF_NAME"
+            --title "拾词 ${{ inputs.ref_name || github.ref_name }}"
