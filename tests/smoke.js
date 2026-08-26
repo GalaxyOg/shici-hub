@@ -97,6 +97,9 @@ const app = fs.readFileSync('app.js', 'utf8') + `
   normalizeSessionItems,
   sessionReadyForCheckIn,
   itemHadDifficulty,
+  feedbackLabel,
+  historyFeedbackText,
+  snapshotHadDifficulty,
   appendDueReviews,
   parseVersion,
   compareVersions,
@@ -318,6 +321,85 @@ function historyItem(word) {
   assert.ok(dueReview && dueReview.type === 'review', 'the difficult word should automatically appear in tomorrow\'s review sheet');
   assert.strictEqual(dueReview.initialDone, false, 'a scheduled review should begin a new initial pass');
   assert.deepStrictEqual(dueReview.attempts, [], 'a new day should not reuse yesterday\'s reinforcement attempts');
+}
+
+// A word marked as fully known (熟词) is skipped past every review stage and never reappears.
+{
+  const [knownWord, easyWord] = TEST_WORDS.slice(8, 10);
+  resetState({ dailyGoal: 2 });
+  seedSession([knownWord, easyWord]);
+
+  __appTest.rate('known');
+  let stored = __appTest.state.session.items.find(item => item.w === knownWord);
+  assert.strictEqual(stored.initialDone, true, 'known should complete the initial encounter');
+  assert.strictEqual(stored.done, true, 'known resolves the word immediately without reinforcement');
+  assert.strictEqual(stored.rating, 'known', 'the latest known feedback should be retained');
+  assert.deepStrictEqual(
+    stored.attempts.map(({ rating, phase, attemptNo }) => ({ rating, phase, attemptNo })),
+    [{ rating: 'known', phase: 'initial', attemptNo: 1 }],
+    'the initial known attempt should be recorded explicitly',
+  );
+
+  __appTest.rate('good');
+  assert.strictEqual(__appTest.sessionReadyForCheckIn(), true, 'a sheet mixing known and good should be ready for check-in');
+  __appTest.checkIn();
+  assert.strictEqual(__appTest.state.session.checkedIn, true, 'the mixed sheet should check in normally');
+
+  const knownRecord = __appTest.state.records[knownWord];
+  assert.strictEqual(knownRecord.stage, 4, 'a newly marked known word should skip straight to the final stage');
+  assert.strictEqual(knownRecord.dueDay, null, 'a known word must never be scheduled for review again');
+  const easyRecord = __appTest.state.records[easyWord];
+  assert.strictEqual(easyRecord.stage, 0, 'an ordinary good rating should keep the normal first review stage');
+
+  const knownSnapshot = historyItem(knownWord);
+  assert.strictEqual(knownSnapshot.initialRating, 'known', 'history should retain the initial known rating');
+  assert.strictEqual(knownSnapshot.finalRating, 'known', 'history should retain the final known rating');
+  assert.strictEqual(knownSnapshot.hadDifficulty, false, 'a known word is not a difficult encounter');
+  assert.deepStrictEqual(knownSnapshot.reinforcementAttempts, [], 'a known word should never acquire reinforcement attempts');
+
+  const nextDay = __appTest.addDays(__appTest.effectiveDate(), 1);
+  assert.strictEqual(__appTest.setStudyDate(nextDay, 'carry'), true, 'the checked-in sheet should open the next study day');
+  const reappeared = __appTest.state.session.items.find(item => item.w === knownWord);
+  assert.ok(!reappeared, 'a known word must not appear in a later review sheet');
+
+  __appTest.renderLibrary();
+  assert.match(node('#libraryList').innerHTML, /已掌握 · 免复习/, 'the library should surface the known state instead of a stage number');
+}
+
+// Rating labels and legacy hard feedback keep working after the 费力 button was merged into 模糊.
+{
+  assert.strictEqual(__appTest.feedbackLabel('known'), '熟词', 'known should render as 熟词 in history text');
+  assert.strictEqual(__appTest.feedbackLabel('hard'), '费力', 'legacy hard feedback must still be readable');
+
+  const knownItem = { attempts: [{ rating: 'known', phase: 'initial', attemptNo: 1 }], initialRating: 'known' };
+  assert.strictEqual(__appTest.snapshotHadDifficulty(knownItem), false, 'a known-only history item is not difficult');
+  assert.strictEqual(__appTest.historyFeedbackText(knownItem), '初轮熟词 · 免复习', 'history should explain the known exit path');
+
+  const hardLegacy = { attempts: [{ rating: 'hard', phase: 'initial', attemptNo: 1 }] };
+  assert.match(__appTest.historyFeedbackText(hardLegacy), /费力/, 'legacy difficult history text must still be readable');
+
+  const normalized = { items: [
+    { w: 'alpha', type: 'new', attempts: [{ rating: 'known', phase: 'initial' }] },
+    { w: 'beta', type: 'new', rating: 'hard', initialDone: true, done: false },
+    { w: 'gamma', type: 'new', attempts: [{ rating: 'nope', phase: 'initial' }, { rating: 'again', phase: 'reinforcement' }] },
+  ] };
+  __appTest.normalizeSessionItems(normalized);
+  assert.deepStrictEqual(
+    normalized.items[0].attempts.map(attempt => attempt.rating),
+    ['known'],
+    'known attempts must survive normalization instead of being dropped as invalid',
+  );
+  assert.strictEqual(normalized.items[0].done, true, 'a known item should stay resolved after normalization');
+  assert.deepStrictEqual(
+    normalized.items[1].attempts.map(attempt => attempt.rating),
+    ['hard'],
+    'legacy hard feedback must survive normalization for older data',
+  );
+  assert.deepStrictEqual(
+    normalized.items[2].attempts.map(attempt => attempt.rating),
+    ['again'],
+    'unknown rating values should still be dropped during normalization',
+  );
 }
 
 // Same-day plan changes may replace untouched words, but must preserve any attempted word and its attempts.

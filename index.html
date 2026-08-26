@@ -40,13 +40,13 @@
       </div>
       <section class="guide-steps">
         <div><strong>01</strong><h2>设定范围</h2><p>选择 IELTS、TOEFL、GRE、PTE Academic，每日数量和是否跳过中高考基础词。未打卡的今日任务会立即重排。</p></div>
-        <div><strong>02</strong><h2>完成学习单</h2><p>复习优先于新词；同阶段内，逾期更久和曾标记费力的词优先。新词按精修优先、语料词频由高到低出现。</p></div>
-        <div><strong>03</strong><h2>强化后打卡</h2><p>初轮的模糊与费力词会循环回顾；全部点“记得”清零后才能打卡并生成下一次复习。</p></div>
+        <div><strong>02</strong><h2>完成学习单</h2><p>复习优先于新词；同阶段内，逾期更久和曾标记模糊次数更多的词优先。新词按精修优先、语料词频由高到低出现。</p></div>
+        <div><strong>03</strong><h2>强化后打卡</h2><p>初轮的模糊词会循环回顾；完全掌握的基本词可标「熟词」直接免复习。全部清零后才能打卡并生成下一次复习。</p></div>
         <div><strong>04</strong><h2>查看记录</h2><p>在记录页或日历中查看每天的新词、复习词和反馈；词库支持搜索、筛选与分页。</p></div>
       </section>
       <section class="guide-data">
         <div><p class="eyebrow">CURRENT PLAN</p><h2 id="guidePlanTitle">每天 10 个新词</h2><p id="guidePlanMeta"></p></div>
-        <div><p class="eyebrow">TODAY'S ORDER</p><p>① 到期复习按第2/3/7/30天分组；② 同组内优先逾期与历史费力词；③ 最后加入尚未学过的高频新词。每日数量只限制新词，复习不占额度。</p></div>
+        <div><p class="eyebrow">TODAY'S ORDER</p><p>① 到期复习按第2/3/7/30天分组；② 同组内优先逾期与历史模糊词；③ 最后加入尚未学过的高频新词。每日数量只限制新词，复习不占额度。</p></div>
         <div><p class="eyebrow">ABOUT THE DATA</p><p>基础双解、音标、词形和词频来自 MIT License 的 ECDICT。PTE Academic 基于 Academic Word List 的 570 个学术词头建立第三方学习范围，释义仍来自 ECDICT；它不是 Pearson 官方词表，也不代表 Pearson 推荐或背书。学习记录只保存在当前浏览器本地，不上传到任何服务器；换设备或换浏览器时，请在“计划”页使用导出 / 导入备份。</p></div>
       </section>
       <section class="project-update" id="projectUpdate" data-state="idle" aria-labelledby="projectUpdateTitle">
@@ -154,8 +154,8 @@
             <p id="ratingPrompt">这次记得怎么样？</p>
             <div id="ratingActions">
               <button data-rating="again">模糊<span>加入强化回顾</span></button>
-              <button data-rating="hard">费力<span>加入强化回顾</span></button>
               <button data-rating="good" class="rating-main">记得<span>进入下一阶段</span></button>
+              <button data-rating="known">熟词<span>已掌握，不再复习</span></button>
             </div>
             <div id="completedBadge" class="completed-badge hidden">✓ 已完成，可继续回看</div>
           </div>
@@ -205,9 +205,9 @@
     </section>
 
     <section id="historyView" class="view subview">
-      <div class="page-title"><p class="eyebrow">DAILY ARCHIVE</p><h1>每日记录</h1><p>点击日历或左侧日期查看当天清单；上方困难词会汇总哪一个词在第几遍被标记为“费力”。</p></div>
+      <div class="page-title"><p class="eyebrow">DAILY ARCHIVE</p><h1>每日记录</h1><p>点击日历或左侧日期查看当天清单；上方困难词会汇总哪一个词在第几遍被标记为“模糊”。</p></div>
       <section class="difficulty-overview">
-        <div><p class="eyebrow">DIFFICULT WORDS</p><h2><span id="hardWordCount">0</span> 个困难词</h2><p>按“费力”次数排序，并标出发生在第几遍记忆。</p></div>
+        <div><p class="eyebrow">DIFFICULT WORDS</p><h2><span id="hardWordCount">0</span> 个困难词</h2><p>按“模糊”次数排序，并标出发生在第几遍记忆。</p></div>
         <div id="difficultyList" class="difficulty-list"></div>
       </section>
       <div class="history-layout">
