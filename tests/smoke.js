@@ -402,6 +402,67 @@ function historyItem(word) {
   );
 }
 
+// Settling: a finished catch-up run returns to the real calendar; an unfinished future sheet keeps its offset until it is completed and checked in.
+{
+  const [a, b] = TEST_WORDS.slice(4, 6);
+  // Unfinished future task -> reload must NOT drop or replace it (no settle while catch-up is still running).
+  resetState({ dailyGoal: 2, virtualOffset: 2 });
+  seedSession([a, b], { date: __appTest.dateKey(__appTest.addDays(__appTest.realToday(), 2)) });
+  assert.strictEqual(__appTest.state.session.items.length, 2, 'fixture should hold the future sheet');
+  __appTest.reload();
+  assert.strictEqual(__appTest.state.virtualOffset, 2, 'an unfinished future task must keep its study-day offset until it is checked in');
+  const kept = __appTest.state.session;
+  assert.strictEqual(kept.checkedIn, false, 'the in-progress catch-up sheet must survive a reload');
+  assert.deepStrictEqual(kept.items.map(item => item.w).sort(), [a, b].sort(), 'reload must not replace the unfinished future sheet with today\'s sheet');
+
+  // Checked-in future sheet -> next open settles to the real today and builds a fresh sheet there.
+  resetState({ dailyGoal: 1, virtualOffset: 2 });
+  const futureKey = __appTest.dateKey(__appTest.addDays(__appTest.realToday(), 2));
+  seedSession([{ w: a, type: 'review' }], { date: futureKey, checkedIn: true, checkinDate: futureKey });
+  assert.strictEqual(__appTest.state.session.checkedIn, true, 'fixture should start with a checked-in future sheet');
+  __appTest.reload();
+  assert.strictEqual(__appTest.state.virtualOffset, 0, 'a settled timeline must return to the real calendar once catch-up is finished');
+  assert.strictEqual(__appTest.state.session.date, __appTest.dateKey(), 'the next task sheet must be built on the real today after settling');
+  assert.strictEqual(__appTest.state.session.checkedIn, false, 'today must start as a fresh unchecked sheet');
+}
+
+// Streak follows real calendar days: catch-up sheets in one day count once; missing a real day resets.
+{
+  const [w1, w2] = TEST_WORDS.slice(2, 4);
+  // A check-in on the day after the last real-day check-in extends the streak.
+  resetState({ dailyGoal: 1 });
+  seedSession([w1]);
+  __appTest.state.streak = 5;
+  __appTest.state.lastRealCheckin = __appTest.dateKey(__appTest.addDays(__appTest.realToday(), -1));
+  __appTest.rate('good');
+  __appTest.checkIn();
+  assert.strictEqual(__appTest.state.streak, 6, 'checking in on consecutive real days should extend the streak');
+  assert.strictEqual(__appTest.state.lastRealCheckin, __appTest.dateKey(), 'the real check-in day should be recorded');
+
+  // A second study-day checked in within the same real day must not extend it twice.
+  resetState({ dailyGoal: 1 });
+  seedSession([w2]);
+  __appTest.state.streak = 6;
+  __appTest.state.lastRealCheckin = __appTest.dateKey(__appTest.addDays(__appTest.realToday(), -1));
+  __appTest.rate('good');
+  __appTest.checkIn();
+  assert.strictEqual(__appTest.setStudyDate(__appTest.addDays(__appTest.effectiveDate(), 1), 'carry'), true, 'a checked-in sheet should open the next study day for catch-up');
+  const tomorrowItems = __appTest.state.session.items;
+  tomorrowItems.forEach(item => { item.initialDone = true; item.done = true; item.rating = 'good'; item.attempts.push({ rating: 'good', phase: 'initial', attemptNo: 1 }); });
+  __appTest.checkIn();
+  assert.strictEqual(__appTest.state.session.checkedIn, true, 'the catch-up sheet should check in');
+  assert.strictEqual(__appTest.state.streak, 7, 'multiple study days checked in within one real day must count as a single streak day');
+
+  // Legacy state without lastRealCheckin restarts at one on the first new-code check-in.
+  resetState({ dailyGoal: 1 });
+  seedSession([w1]);
+  __appTest.state.streak = 9;
+  delete __appTest.state.lastRealCheckin;
+  __appTest.rate('good');
+  __appTest.checkIn();
+  assert.strictEqual(__appTest.state.streak, 1, 'pre-migration streak data should restart cleanly instead of faking continuity');
+}
+
 // Same-day plan changes may replace untouched words, but must preserve any attempted word and its attempts.
 {
   const outOfScope = VOCAB.find(word => word.src.includes('IELTS') && !word.src.includes('PTE'));
